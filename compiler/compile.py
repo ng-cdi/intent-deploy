@@ -42,7 +42,7 @@ def load_json_topology(filename):
     return {'devices':devices_handles,'middleboxes':middleboxes_handles}
 
 def load_live_json_topology():
-    
+
     response = requests.get(config.hosts_url, auth=(config.login, config.password))
     data = response.json()
 
@@ -87,7 +87,7 @@ def extract_values(nile_intent, op, value_id):
             m = re.search(value_id + '\((.+)\)(,?)', term)
             if m:
                 values.append(m.group(1).replace('\'', ''))
-    print values
+    print (values)
     return values
 
 
@@ -145,7 +145,7 @@ def get_path(src, dst, path):
 
 def BST_to_UTC(bst):
     import dateutil.parser
-    from dateutil.relativedelta import *
+    from dateutil.relativedelta import relativedelta
 
 
 
@@ -154,7 +154,7 @@ def BST_to_UTC(bst):
 
     print (yourdate)
     print (utc)
-    
+
     return utc.strftime('%Y-%m-%dT%H:%M:%S%z')
 
 def possible_routes(src, dst):
@@ -162,9 +162,9 @@ def possible_routes(src, dst):
     response = requests.get(config.ngcdi_url+'get_routes', json={"api_key": config.api_key, "key": src+dst})
 
     if response.status_code != 200:
-        src = src.strip("0:/None")         
+        src = src.strip("0:/None")
         srcname = 'h'+str(int(src, 16))
-        dst = dst.strip("0:/None")         
+        dst = dst.strip("0:/None")
         dstname = 'h'+str(int(dst, 16))
         raise ValueError('Impossible to get the routes between '+srcname+' and '+dstname)
 
@@ -175,8 +175,8 @@ def possible_routes(src, dst):
         routes.append(data['routes'][route])
 
     #debug
-    print routes
-    
+    print (routes)
+
     return routes
 
 def protect_service(period):
@@ -186,8 +186,8 @@ def protect_service(period):
     info = {}
     info["priority"] = 10
     info["enabled"] = True
-    
-       
+
+
     #info["start_time"] = BST_to_UTC(period[0])
 
     #info["end_time"] = BST_to_UTC(period[1])
@@ -200,8 +200,8 @@ def protect_service(period):
     policy["spp"] = spp
 
     #debug purpose
-    print policy
-    
+    print (policy)
+
     return policy
 
 def forward_traffic(endpoints, path):
@@ -213,7 +213,7 @@ def forward_traffic(endpoints, path):
     policy = {}
 
     #debug
-    print handles
+    print (handles)
 
     if len(endpoints) < 2:
         raise ValueError('No targets provided. Ask the user again.')
@@ -224,7 +224,7 @@ def forward_traffic(endpoints, path):
 
 
     #debug
-    print src
+    print (src)
 
     if endpoints[1] not in handles['hosts'].keys():
         raise ValueError('Client '+endpoints[1]+' not found')
@@ -232,21 +232,21 @@ def forward_traffic(endpoints, path):
 
 
     #debug
-    print dst
+    print (dst)
 
     route_req = get_path(src, dst, path)
-    
+
     #debug
-    print 'the routee is '  
-    print route_req
+    print ('the route is ')
+    print (route_req)
 
     found = False
 
     try:
         routes = possible_routes(src, dst)
     except ValueError as err:
-        print 'exception catched inside forward traffic'
-        print err
+        print ('exception catched inside forward traffic')
+        print (err)
         raise
 
     for route in routes:
@@ -265,12 +265,12 @@ def forward_traffic(endpoints, path):
     else:
         raise ValueError('This route is not possible to apply')
     #debug purpose
-    print policy
+    print (policy)
     return policy
 
-        
 
-    
+
+
 def compile_yacc(nile_intent):
     policy = ''
     info = {}
@@ -296,34 +296,34 @@ def compile_yacc(nile_intent):
         targets = parser.targets
         path = parser.path
 
-        #for debug purpose 
-        print 'endpoint source is: '+endpoints[0]
-        print 'endpoint destination is : '+endpoints[1]
+        #for debug purpose
+        print ('endpoint source is: '+endpoints[0])
+        print ('endpoint destination is : '+endpoints[1])
         for middlebox in middleboxes:
-            print 'middleboxe is: '+middlebox
-        print 'the target is : '+targets[0]
-        print 'the path is: ' 
+            print ('middleboxe is: '+middlebox)
+        print ('the target is : '+targets[0])
+        print ('the path is: ')
         for switch in path:
-            print ' - '+switch 
-    
+            print (' - '+switch)
+
         try:
             policy = forward_traffic(endpoints, path)
         except ValueError as err:
-            print 'exception catched inside compile yacc'
-            print err
-            raise           
+            print ('exception catched inside compile yacc')
+            print (err)
+            raise
 
     elif intent_id[0] == 'sppIntent':
         info['url'] = config.ngcdi_url+'push_spp'
         targets = parser.targets
         period = parser.periods
 
-        #for debug purpose 
-        print 'starting time is: '+period[0]
-        print 'and ending time is : '+period[1]
-        print 'the target is : '+targets[0]
-    
-        policy = protect_service(period)  
+        #for debug purpose
+        print ('starting time is: '+period[0])
+        print ('and ending time is : '+period[1])
+        print ('the target is : '+targets[0])
+
+        policy = protect_service(period)
 
 
 #    if not middleboxes:
@@ -384,7 +384,7 @@ def handle_request(request):
         info = compile_yacc(intent)
         deploy(info)
     except ValueError as err:
-        print 'Error handle: {}'.format(err)
+        print ('Error handle: {}'.format(err))
         raise
 
     return {
