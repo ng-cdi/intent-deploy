@@ -11,3 +11,5 @@ future = "*"
 ply = "*"
 requests= "*"
 python-dateutil = "*"
+osm-im = {git = "https://osm.etsi.org/gerrit/osm/IM", ref="v8.0.0"}
+osmclient = {git = "https://osm.etsi.org/gerrit/osm/osmclient", ref='v8.0.0'}

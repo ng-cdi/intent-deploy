@@ -242,17 +242,19 @@ def forward_traffic(endpoints, path):
 
     found = False
 
-    try:
-        routes = possible_routes(src, dst)
-    except ValueError as err:
-        print ('exception catched inside forward traffic')
-        print (err)
-        raise
+    # try:
+        # routes = possible_routes(src, dst)
+    # except ValueError as err:
+        # print ('exception catched inside forward traffic')
+        # print (err)
+        # raise
+# 
+    # for route in routes:
+        # if route == route_req:
+            # found = True
+            # break
 
-    for route in routes:
-        if route == route_req:
-            found = True
-            break
+    found = True
 
     if found:
         policy["api_key"] = config.api_key
@@ -306,8 +308,22 @@ def compile_yacc(nile_intent):
         for switch in path:
             print (' - '+switch)
 
+        print("An alternative model to support service forwarding graphs.")
+
+        intent = {
+            "name": intent_id[0],
+            "ffg": [],
+        }
+
+        intent['ffg'].append({"name": endpoints[0], "vnf": False, "host":True})
+        for mb in middleboxes:
+            intent['ffg'].append({"name": middlebox, "vnf": True})
+        intent['ffg'].append({"name": endpoints[1], "vnf": False, "host":True})
+            
+
         try:
-            policy = forward_traffic(endpoints, path)
+            # policy = forward_traffic(endpoints, path)
+            policy = intent
         except ValueError as err:
             print ('exception catched inside compile yacc')
             print (err)
@@ -405,3 +421,23 @@ def handle_request(request):
 ACTIONS = {
     "forwardIntent": forward_traffic
 }
+
+def compile_request(intent):
+    info = {}
+    try:
+        info = compile_yacc(intent)
+        print(info)
+    except ValueError as err:
+        print ('Error handle: {}'.format(err))
+        raise
+    return {
+        'input': {
+            'type': 'nile',
+            'intent': intent
+        },
+        'output': {
+            'type': 'sonata-nfv commands',
+            'policy': info['policy']
+        }
+    }
+
