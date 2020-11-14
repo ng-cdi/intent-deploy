@@ -44,15 +44,15 @@ class IntentManager(object):
         resp["policy"]["name"] = "testIntent"
         intent = resp["policy"]
         # create the nsd state
-        nsd =  { 
+        nsd =  {
             "id": intent["name"],
-            "name": intent["name"], 
-            "short-name": intent["name"], 
-            "description": intent["name"], 
-            "vendor": "NG-CDI, Lancaster University", 
-            "version": "1.0", 
-            "constituent-vnfd": [], 
-            "vld": [], 
+            "name": intent["name"],
+            "short-name": intent["name"],
+            "description": intent["name"],
+            "vendor": "NG-CDI, Lancaster University",
+            "version": "1.0",
+            "constituent-vnfd": [],
+            "vld": [],
             "ip-profiles": [],
         }
 
@@ -84,7 +84,7 @@ class IntentManager(object):
                 try:
                     self.get_vnfd_template(vnf["name"])
                 except e :
-                    logging.error("Failed intent construction: vnfd " + 
+                    logging.error("Failed intent construction: vnfd " +
                      vnf["name"] + " missing")
                     return
 
@@ -98,19 +98,19 @@ class IntentManager(object):
                         "member-vnf-index-ref": "2",
                         "vnfd-connection-point-ref": "output_cp"
                     })
-                    vnf["vld"].append(previous_vld)
+                    nsd["vld"].append(previous_vld)
                     nsd["ip-profiles"].append({
                         "name":"%s_%s_net"%(previous_vnf, vnf["name"]),
-                    "description": "Subnet between %s and %s"%(previous_vnf, 
+                    "description": "Subnet between %s and %s"%(previous_vnf,
                         vnf["name"]),
                     "ip-profile-params": {
                        "ip-version": "ipv4",
                        "subnet-address": "192.168."+str(count-1)+".0/24",
                        "dhcp-params": {
-                            "enabled": true,
+                            "enabled": True,
                             "start-address": "192.168."+str(count-1)+".4",
                         }
-                    } 
+                    }
                 })
                 nsd["constituent-vnfd"].append({
                     "member-vnf-index" : count,
@@ -122,7 +122,7 @@ class IntentManager(object):
                     "type": "ELAN",
                     "mgmt-network": False,
                     "vnfd-connection-point-ref": [{
-                        "vnf-id-ref": vnf["name"],
+                        "vnfd-id-ref": vnf["name"],
                         "member-vnf-index-ref": "1",
                         "vnfd-connection-point-ref": "input_cp"
                     }]
@@ -131,7 +131,7 @@ class IntentManager(object):
                 previous_vnf = vnf["name"]
 
                 # connect the vnfd in the nsd
-        
+
         nsd = {
             "nsd:nsd-catalog": {
                 "nsd": [nsd]
