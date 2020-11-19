@@ -1,0 +1,57 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: firewall
+        name: firewall
+        short-name: firewall
+        description: Firewall VNF using linux iptables
+        version: '1.0'
+
+        connection-point:
+            -   name: mgmt_cp
+                type: VPORT
+            -   name: input_cp
+                type: VPORT
+                port-security-enabled: false
+            -   name: output_cp
+                type: VPORT
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: mgmt_cp
+
+        vdu:
+        -   id: firewall
+            name: firewall
+            description: A linux image with iptables
+            count: 1
+            image: 'ubuntu-cloud'
+
+            cloud-init-file: cloud-init-firewall
+
+            vm-flavor:
+                vcpu-count: 1
+                memory-mb: 4096
+                storage-gb: 10
+
+            interface:
+            -   name: mgmt_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: mgmt_cp
+                mgmt-interface: true
+                position: '1'
+
+            -   name: input_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: input_cp
+                position: '2'
+
+            -   name: output_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: output_cp
+                position: '3'

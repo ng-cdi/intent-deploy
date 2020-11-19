@@ -1,0 +1,52 @@
+#cloud-config - InfluxDB relay node
+password: osm
+chpasswd: { expire: False }
+ssh_pwauth: True
+
+users:
+  - name: ubuntu
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/ytsRnYehDFUX5nNhICnmR0IxtdFJjn9YAvO3CCx2FzLwOIRtMzUmHPbI3WQ+REyVZtUtdV9pHynO+E5gSolsWZrw9hJ4qT6+T078gayAIpp/i4tJtpOdJwUoOxf8w2AyIcbtH9DJwkv1y8Cx0hFh2TlBKmNnCsE0fGGYHlkusn1odYl1j9t3l037KW7KEpDMslSSYw0Hgbt02hU8sPDZdKpepOaHww+7sEln7ENf614KVdMNw/myvUjY4e3FF3FDqtnO5TUHbFkhCE3rPIm0K1YaAHFXVMibXkcsdvrsBUAiUr79aUAiaFumoutDi2ccaE5v9HPncU3xf5bu+zGP abubakrm@dyn-227-202.lancs.ac.uk
+
+runcmd:
+  - echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo tee -a /etc/hosts
+  - sed -i '/^APT::Periodic::Update-Package-Lists /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sed -i '/^APT::Periodic::Unattended-Upgrade /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sudo ifconfig ens4 up
+  - sudo ifconfig ens5 up
+  - sudo su -c 'echo "auto ens5" >> /etc/network/interfaces.d/60-manual-config.cfg'
+  - sudo su -c 'echo "iface ens5 inet dhcp" >> /etc/network/interfaces.d/60-manual-config.cfg'
+  - sudo service apache2 stop
+  - mkdir /home/ubuntu/gocode
+  - echo ' ' >> /home/ubuntu/.bashrc
+  - echo 'export GOPATH=/home/ubuntu/gocode' >> /home/ubuntu/.bashrc
+  - echo 'export GOROOT=/usr/local/go' >> /home/ubuntu/.bashrc
+  - echo 'export PATH=$PATH:$GOROOT/bin' >> /home/ubuntu/.bashrc
+  - export GOPATH=/home/ubuntu/gocode
+  - export GOCACHE=/home/ubuntu/gocode/cache
+  - export GOROOT=/usr/local/go
+  - /usr/local/go/bin/go get -u github.com/vente-privee/influxdb-relay
+  - chown -R ubuntu:ubuntu /home/ubuntu
+  - service relstart start
+
+write_files:
+-   content: |
+        [Unit]
+        Description=Start InfluxDB Relay
+        [Service]
+        ExecStart=/home/ubuntu/gocode/bin/influxdb-relay -config /etc/influxdb-relay/influxdb-relay.conf
+        Restart=always
+        [Install]
+        WantedBy=multi-user.target 
+    owner: root:root
+    path: /etc/systemd/system/relstart.service
+-   path: /etc/influxdb-relay/influxdb-relay.conf
+    content: |
+       [[http]]
+        name = "example-http-influxdb"
+        bind-addr = "0.0.0.0:8086"
+        [[http.output]]
+        name = "local-influxdb01"
+        location = "http://10.30.65.25:8086/"
+        endpoints = {write="/write", write_prom="/api/v1/prom/write", ping="/ping", query="/query"}
+        timeout = "10s"

@@ -1,0 +1,64 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: relay
+        name: relay
+        short-name: relay
+        description: InfluxDB relay VNF
+        version: '1.0'
+
+        connection-point:
+            -   name: mgmt_cp
+                type: VPORT
+            -   name: input_cp
+                type: VPORT
+                port-security-enabled: false
+            -   name: output_cp
+                type: VPORT
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: mgmt_cp
+
+        vdu:
+        -   id: relay
+            name: relay
+            description: Linux Vm with influxdb-replay pre-installed
+            count: 1
+            image: 'relay-base-image'
+
+            cloud-init-file: cloud-init-relay
+
+            monitoring-param:
+            -   id: "relay_cpu_util"
+                nfvi-metric: "cpu_utilization"
+            -   id: "relay_memory_util"
+                nfvi-metric: "average_memory_utilization"
+            vm-flavor:
+                vcpu-count: 1
+                memory-mb: 4096
+                storage-gb: 10
+           interface:
+            -   name: mgmt_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: mgmt_cp
+                mgmt-interface: true
+                position: '1'
+
+            -   name: input_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: input_cp
+                position: '2'
+
+            -   name: output_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: output_cp
+                position: '3'
+            vdu:
+            -   vdu-id-ref: relay
+                count: 1

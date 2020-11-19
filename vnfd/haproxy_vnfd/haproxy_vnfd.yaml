@@ -1,0 +1,58 @@
+vnfd:vnfd-catalog:
+    vnfd:
+    -   id: lb
+        name: lb
+        short-name: lb
+        description: Load balance connections to a backend service
+        version: '1.0'
+
+        connection-point:
+            -   name: mgmt_cp
+                type: VPORT
+            -   name: input_cp
+                type: VPORT
+                port-security-enabled: false
+            -   name: output_cp
+                type: VPORT
+                port-security-enabled: false
+
+        mgmt-interface:
+            cp: mgmt_cp
+
+        vdu:
+        -   id: haproxy
+            name: haproxy
+            description: HAproxy VM config
+            count: 1
+            image: 'ubuntu-proxy'
+
+            cloud-init-file: cloud-init-haproxy
+
+            vm-flavor:
+                vcpu-count: 1
+                memory-mb: 2048
+                storage-gb: 10
+
+            interface:
+            -   name: mgmt_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: mgmt_cp
+                mgmt-interface: true
+                position: '1'
+
+            -   name: input_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: input_cp
+                position: '2'
+
+            -   name: output_intf
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: output_cp
+                position: '3'
+

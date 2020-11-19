@@ -1,0 +1,39 @@
+#cloud-config - firewall
+password: osm
+chpasswd: { expire: False }
+ssh_pwauth: True 
+
+users:
+  - name: ubuntu
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/ytsRnYehDFUX5nNhICnmR0IxtdFJjn9YAvO3CCx2FzLwOIRtMzUmHPbI3WQ+REyVZtUtdV9pHynO+E5gSolsWZrw9hJ4qT6+T078gayAIpp/i4tJtpOdJwUoOxf8w2AyIcbtH9DJwkv1y8Cx0hFh2TlBKmNnCsE0fGGYHlkusn1odYl1j9t3l037KW7KEpDMslSSYw0Hgbt02hU8sPDZdKpepOaHww+7sEln7ENf614KVdMNw/myvUjY4e3FF3FDqtnO5TUHbFkhCE3rPIm0K1YaAHFXVMibXkcsdvrsBUAiUr79aUAiaFumoutDi2ccaE5v9HPncU3xf5bu+zGP abubakrm@dyn-227-202.lancs.ac.uk
+
+runcmd: 
+  - echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo tee -a /etc/hosts
+  - sed -i '/^APT::Periodic::Update-Package-Lists /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sed -i '/^APT::Periodic::Unattended-Upgrade /s/"1"/"0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  - sudo ifconfig ens4 192.168.10.15 netmask 255.255.255.0
+  - sudo ifconfig ens5 192.168.20.25 netmask 255.255.255.0
+  - mkdir /home/ubuntu/bin
+  - sudo sysctl -w net.ipv4.ip_forward=1
+
+write_files:
+-   content: |
+        #!/bin/bash
+        
+        echo ""
+        ping -c 3 192.168.10.5 && 
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.10.15 &&
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.20.25 &&
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.20.35 &&
+        echo "-------------------------------------------------------------------------------"
+        ping -c 3 192.168.28.2 &&
+        echo ""
+
+    owner: root:root
+    permissions: '755'
+    path: /home/ubuntu/bin/check-interfaces
+
