@@ -248,7 +248,7 @@ def forward_traffic(endpoints, path):
         # print ('exception catched inside forward traffic')
         # print (err)
         # raise
-# 
+#
     # for route in routes:
         # if route == route_req:
             # found = True
@@ -317,9 +317,9 @@ def compile_yacc(nile_intent):
 
         intent['ffg'].append({"name": endpoints[0], "vnf": False, "host":True})
         for mb in middleboxes:
-            intent['ffg'].append({"name": middlebox, "vnf": True})
+            intent['ffg'].append({"name": mb, "vnf": True})
         intent['ffg'].append({"name": endpoints[1], "vnf": False, "host":True})
-            
+
 
         try:
             # policy = forward_traffic(endpoints, path)

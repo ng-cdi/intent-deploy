@@ -57,8 +57,7 @@ class IntentManager(object):
         }
 
         # figure out the source vld
-        vld = [
-            {
+        mgmt_vld = {
             "id": intent["name"] + "-mgmt",
             "name": intent["name"] + "-mgmt",
             "short-name": intent["name"] + "-mgmt",
@@ -72,7 +71,8 @@ class IntentManager(object):
             #     "member-vnf-index-ref": "1",
             #     "vnfd-connection-point-ref": "aggr_mgmt_cp"
             #     "ip-address": "192.168.28.2"},
-          }]
+          }
+        nsd["vld"].append(mgmt_vld)
 
         # Get the vnfd for each vnf
         count = 1
@@ -87,12 +87,17 @@ class IntentManager(object):
                     logging.error("Failed intent construction: vnfd " +
                      vnf["name"] + " missing")
                     return
+                nsd["vld"][0]["vnfd-connection-point-ref"].append({
+                    "member-vnf-index-ref": count,
+                    "vnfd-id-ref":vnf["name"],
+                    "vnfd-connection-point-ref": "mgmt_cp"
+                    })
 
                 if previous_vld is not None:
                     previous_vld['id'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
                     previous_vld['name'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
                     previous_vld['short_name'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
-                    previous_vld['description'] = "Dataplane link between %s and %s"%(previous_vld, vnf["name"]),
+                    previous_vld['description'] = "Dataplane link between %s and %s"%(previous_vnf, vnf["name"])
                     previous_vld["vnfd-connection-point-ref"].append({
                         "vnfd-id-ref" : vnf["name"],
                         "member-vnf-index-ref": "2",
@@ -138,18 +143,20 @@ class IntentManager(object):
             }
         }
         print(nsd)
+        with open("nsd.yaml", 'w') as file:
+            yaml.dump(nsd, file)
+
         validate = validation.Validation()
         validate.pyangbind_validation("nsd", nsd)
-
-        tmpDir = tempfile.mkdtemp()
-        print(tmpDir)
-        with open(tmpDir+"/nsd.yaml", 'w') as file:
-            yaml.dump(nsd, file)
-            # tmpDir.cleanup()
-        tar = tarfile.open("./nsd.tar.gz", 'w')
-        tar.add(tmpDir+"/nsd.yaml", arcname="nsd.yaml")
-        tar.close()
-        print(tmpDir)
+        # tmpDir = tempfile.mkdtemp()
+        # print(tmpDir)
+        # with open(tmpDir+"/nsd.yaml", 'w') as file:
+        #     yaml.dump(nsd, file)
+        #     # tmpDir.cleanup()
+        # tar = tarfile.open("./nsd.tar.gz", 'w')
+        # tar.add(tmpDir+"/nsd.yaml", arcname="nsd.yaml")
+        # tar.close()
+        # print(tmpDir)
 
         # need to deploy nsd now
 
