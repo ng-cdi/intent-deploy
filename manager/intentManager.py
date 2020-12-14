@@ -39,8 +39,11 @@ class IntentManager(object):
     def add_intent(self, intent):
         resp = compile_yacc(intent)
         logging.info("Inserting new intent ")
-        logging.info(resp)
+
+        # Store forwarding graph in mongo        
         ret = self.sess.create("intentState", resp)
+
+        # initialize the nsd details with some static details.
         resp["policy"]["name"] = "testIntent"
         intent = resp["policy"]
         # create the nsd state
@@ -58,21 +61,16 @@ class IntentManager(object):
 
         # figure out the source vld
         mgmt_vld = {
-            "id": intent["name"] + "-mgmt",
-            "name": intent["name"] + "-mgmt",
-            "short-name": intent["name"] + "-mgmt",
-            "description": intent["name"] + "managment network",
+            "id": "osm-inet",
+            "name": "osm-inet",
+            "short-name": "osm-inet",
+            "description": "osm-inet",
             "version": "1.0",
             "type": "ELAN",
-            "vim-network-name": intent["name"] + "-mgmt",
+            "vim-network-name": "osm-inet",
             "mgmt-network": "true",
             "vnfd-connection-point-ref": []
-            #   { "vnfd-id-ref": "aggr",
-            #     "member-vnf-index-ref": "1",
-            #     "vnfd-connection-point-ref": "aggr_mgmt_cp"
-            #     "ip-address": "192.168.28.2"},
-          }
-        nsd["vld"].append(mgmt_vld)
+         }
 
         # Get the vnfd for each vnf
         count = 1
@@ -83,27 +81,27 @@ class IntentManager(object):
 
                 try:
                     self.get_vnfd_template(vnf["name"])
-                except e :
+                except:
                     logging.error("Failed intent construction: vnfd " +
                      vnf["name"] + " missing")
                     return
-                nsd["vld"][0]["vnfd-connection-point-ref"].append({
-                    "member-vnf-index-ref": count,
-                    "vnfd-id-ref":vnf["name"],
-                    "vnfd-connection-point-ref": "mgmt_cp"
-                    })
-
                 if previous_vld is not None:
-                    previous_vld['id'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
-                    previous_vld['name'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
-                    previous_vld['short_name'] = "%s_%s_dp"%(previous_vnf, vnf["name"])
+                    # construct vld names based on vnf names
+                    name = "%s_%s_dp"%(previous_vnf, vnf["name"])
+                    previous_vld['id'] = name 
+                    previous_vld['name'] = name 
+                    previous_vld['short_name'] = name 
                     previous_vld['description'] = "Dataplane link between %s and %s"%(previous_vnf, vnf["name"])
+
+                    # Add the new vnf to the previous vld.
                     previous_vld["vnfd-connection-point-ref"].append({
                         "vnfd-id-ref" : vnf["name"],
                         "member-vnf-index-ref": "2",
                         "vnfd-connection-point-ref": "output_cp"
-                    })
+                    }) 
                     nsd["vld"].append(previous_vld)
+
+                    # define the ip_profile for the previous vnf
                     nsd["ip-profiles"].append({
                         "name":"%s_%s_net"%(previous_vnf, vnf["name"]),
                     "description": "Subnet between %s and %s"%(previous_vnf,
@@ -117,11 +115,22 @@ class IntentManager(object):
                         }
                     }
                 })
+
+                # Add the vnf to the pool of vnfs for the system.
                 nsd["constituent-vnfd"].append({
                     "member-vnf-index" : count,
                     "vnfd-id-ref" : vnf["name"]
                 })
 
+                # TODO Add the corrent vnf to the mgmt network
+                mgmt_vld["vnfd-connection-point-ref"].append({
+                    "vnfd-id-ref": vnf["name"],
+                    "member-vnf-index-ref": count,
+                    "vnfd-connection-point-ref": "mgmt_cp"
+                })
+
+
+                # start constructing the output vld.
                 previous_vld = {
                     "version": "1.0",
                     "type": "ELAN",
@@ -130,12 +139,14 @@ class IntentManager(object):
                         "vnfd-id-ref": vnf["name"],
                         "member-vnf-index-ref": "1",
                         "vnfd-connection-point-ref": "input_cp"
-                    }]
+                   }]
                 }
                 count = count + 1
                 previous_vnf = vnf["name"]
+        # connect the vnfd in the nsd 
+        # Add the mgmt vld to the main system
+        nsd["vld"].append(mgmt_vld)
 
-                # connect the vnfd in the nsd
 
         nsd = {
             "nsd:nsd-catalog": {
@@ -146,6 +157,7 @@ class IntentManager(object):
         with open("nsd.yaml", 'w') as file:
             yaml.dump(nsd, file)
 
+        print(yaml.dump(nsd))
         validate = validation.Validation()
         validate.pyangbind_validation("nsd", nsd)
         # tmpDir = tempfile.mkdtemp()
@@ -159,13 +171,12 @@ class IntentManager(object):
         # print(tmpDir)
 
         # need to deploy nsd now
+        self.orch[0].create_nsd("nsd.yaml")
 
         # add state details to mongo
         self.sess
-        return resp
-
-    def list_intents(self):
-        return
+        return resp 
+    def list_intents(self): return
 
     def view_intent(self):
         return

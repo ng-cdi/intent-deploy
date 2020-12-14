@@ -40,5 +40,10 @@ class OSMDeploy(object):
         resp = self.sess.vim.list()
         return resp
 
-    def create_vnfd():
-       pass
+    def create_nsd(self, filename):
+        resp = self.sess.nsd.create(filename)
+        return resp
+
+    def create_ns(self, nsd_name, ns_name, vim) : 
+        resp = self.sess.ns.create(nsd_name, ns_name, vim)
+        return resp
