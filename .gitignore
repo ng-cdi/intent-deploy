@@ -6,3 +6,4 @@
 *.pyc
 *.pyc
 *.TMP
+compiler/parser.out
