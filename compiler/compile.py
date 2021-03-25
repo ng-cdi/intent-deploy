@@ -91,7 +91,6 @@ def extract_values(nile_intent, op, value_id):
     return values
 
 
-def compile(nile_intent):
     compiled = ''
 
     middleboxes = extract_values(nile_intent, 'add', 'middlebox')

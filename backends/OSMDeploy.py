@@ -1,3 +1,5 @@
+import logging
+from typing import Any, List
 from osmclient import client
 from osmclient.common.exceptions import ClientException
 import yaml
@@ -6,6 +8,8 @@ import contextlib
 import os
 import shutil
 import tempfile
+from osmclient.sol005.vnfd import Vnfd
+from osmclient.sol005.vim import Vim
 
 
 class OSMDeploy(object):
@@ -29,21 +33,22 @@ class OSMDeploy(object):
         if project is not None:
            self.kwargs['project']=project
 
-    def connect(self, addr="127.0.0.1", port=9999):
-        self.sess = client.Client(host=addr, sol005=True, **self.kwargs)
+    def connect(self, addr : str ="127.0.0.1", port : int =9999):
+        self.sess : client.Client = client.Client(host=addr, sol005=True, **self.kwargs)
 
-    def get_vnfd(self):
+    def get_vnfd(self) -> List[Vnfd]:
         resp = self.sess.vnfd.list()
+        logging.info(resp)
         return resp
 
-    def get_vim(self):
+    def get_vim(self) -> List[Vim]:
         resp = self.sess.vim.list()
         return resp
 
-    def create_nsd(self, filename):
+    def create_nsd(self, filename : str) -> Any:
         resp = self.sess.nsd.create(filename)
         return resp
 
-    def create_ns(self, nsd_name, ns_name, vim) : 
+    def create_ns(self, nsd_name : str, ns_name : str, vim : str) : 
         resp = self.sess.ns.create(nsd_name, ns_name, vim)
         return resp
