@@ -1,0 +1,106 @@
+module ietf-nile {
+    namespace "urn:ietf:params:xml:ns:yang:nile";
+    prefix nile;
+
+    import ietf-yang-types {
+        prefix "ietf-yang-types";
+    }
+
+    import ietf-inet-types {
+        prefix "ietf-inet-types";
+    }
+
+    organization
+      "Lancaster University";
+
+    description
+      "A YANG model for the nile language extesions develop for the NG-CDI project";
+
+    contact
+      "ng-cdi-admin@lancaster.ac.uk";
+
+    revision "2021-03-20" {
+        description
+          "Initial definition";
+    }
+
+    grouping middleboxes {
+        list middlebox {
+            key "name";
+            leaf name {
+                description
+                  "The name of the middlebox type";
+                type string;
+            }
+        }
+    }
+
+    grouping period {
+        list period {
+            key "start to";
+            leaf start {
+                description
+                  "start time of an intent";
+                type ietf-yang-types:date-and-time;
+            }
+            leaf to {
+                description
+                  "start time of an intent";
+                type ietf-yang-types:date-and-time;
+            }
+        }
+    }
+
+    grouping location {
+        list location {
+            key "from to";
+            leaf from {
+                description
+                  "network endpoint";
+                type ietf-inet-types:ipv4-prefix;
+            }
+            leaf to {
+                description
+                  "network endpoint";
+                type ietf-inet-types:ipv4-prefix;
+            }
+        }
+    }
+
+    container nile {
+        list intent {
+            key "name";
+            leaf name {
+                type string;
+                mandatory "true";
+                description
+                  "intent name";
+            }
+
+            uses nile:middleboxes;
+            uses nile:period;
+            uses nile:location;
+
+            list actions {
+                key act;
+                leaf act {
+                    type string;
+                }
+            }
+
+            list targets {
+                key target;
+                leaf target {
+                    type string;
+                }
+            }
+
+            list netpath {
+                key switch;
+                leaf switch {
+                    type string;
+                }
+            }
+        }
+    }
+}
