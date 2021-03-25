@@ -1,0 +1,5 @@
+define intent forwardIntent:
+	from endpoint('h1')
+	to endpoint('h2')
+	for target('haris')
+	add middlebox('firewall'), middlebox('lb')
