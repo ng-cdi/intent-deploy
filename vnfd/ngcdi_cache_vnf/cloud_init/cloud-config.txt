@@ -1,0 +1,19 @@
+#cloud-config
+password: osm4u
+chpasswd: { expire: False }
+ssh_pwauth: True
+
+package_upgrade: true
+packages: ['nginx', 'tcpdump', 'iperf', 'haproxy']
+write_files:
+- owner: www-data:www-data
+  path: /etc/nginx/sites-available/default
+  content: |
+    server {
+      listen 80;
+      location / {
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html; 
+      }
+    }
+runcmd: ['service nginx restart', 'service nginx enable']
