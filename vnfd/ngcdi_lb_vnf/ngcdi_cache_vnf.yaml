@@ -1,0 +1,75 @@
+vnfd-catalog:
+    vnfd:
+    -   id: ngcdi_lb-vnf
+        name: ngcdi_lb-vnf
+        short-name: ngcdi_lb-vnf
+        version: '1.0'
+        description: A VNF consisting of 1 VDU connected to two external VL, and one for data and another one for management
+        logo: osm.png
+        connection-point:
+        -   id: mgmt
+            name: mgmt
+            short-name: mgmt
+            type: VPORT
+            port-security-enabled: false
+        -   id: input
+            name: input
+            short-name: input
+            type: VPORT
+            port-security-enabled: false
+        -   id: output 
+            name: output 
+            short-name: output 
+            type: VPORT
+            port-security-enabled: false
+        mgmt-interface:
+            cp: mgmt
+        vdu:
+        -   id: lb
+            name: lb
+            image: "Ubuntu-18.04"
+            count: 1
+            vm-flavor:
+                vcpu-count: 1
+                memory-mb: 1024
+                storage-gb: 10
+            interface:
+            -   name: mgmt
+                position: 1
+                mgmt-interface: true
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: mgmt
+            -   name: input
+                position: 2
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: input
+            -   name: output
+                position: 3
+                type: EXTERNAL
+                virtual-interface:
+                    type: VIRTIO
+                external-connection-point-ref: output
+            cloud-init-file: cloud-config.txt
+        vnf-configuration:
+            juju:
+                charm: lb
+            initial-config-primitive:
+            -   seq: 1
+                name: config
+                parameter:
+                -   name: ssh-hostname
+                    value: <rw_mgmt_ip>
+                -   name: ssh-username
+                    value: ubuntu
+                -   name: ssh-password
+                    value: osm4u
+            config-primitive:
+            -   name: touch
+                parameter:
+                -   name: filename
+                    data-type: STRING
+                    default-value: '/home/ubuntu/touched'
