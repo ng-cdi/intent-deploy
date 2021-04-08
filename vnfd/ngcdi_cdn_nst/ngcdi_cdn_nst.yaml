@@ -22,7 +22,7 @@ nst:
         id: 1
 
     netslice-subnet:
-    -   id: slice_cache_1
+    -   id: slice_cache-1
         is-shared-nss: false
         description: Cache layers
         nsd-ref: ngcdi_cache-ns
@@ -37,21 +37,21 @@ nst:
         type: ELAN
         mgmt-network: true
         nss-connection-point-ref:
-        -   nss-ref: slice_cache_1
+        -   nss-ref: slice_cache-1
             nsd-connection-point-ref: nsd_cp_mgmt
-        -   nss-ref: slice_lb_1
+        -   nss-ref: slice_lb-1
             nsd-connection-point-ref: nsd_cp_mgmt
     -   id: slice_vld_backend
         name: slice_vld_backend
         type: ELAN
         nss-connection-point-ref:
-        -   nss-ref: slice_cache_1
+        -   nss-ref: slice_cache-1
             nsd-connection-point-ref: nsd_cp_input
-        -   nss-ref: slice_lb_1
+        -   nss-ref: slice_lb-1
             nsd-connection-point-ref: nsd_cp_output
     -   id: slice_vld_frontend
         name: slice_vld_frontend
         type: ELAN
         nss-connection-point-ref:
-        -   nss-ref: slice_lb_1
+        -   nss-ref: slice_lb-1
             nsd-connection-point-ref: nsd_cp_input
